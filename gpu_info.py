@@ -10,7 +10,8 @@ from .utils import get_nvidia_smi_data, match_pytorch_to_nvidia
 logger = logging.getLogger("gpu_scheduler")
 
 # Create a directory for GPU lock files if it doesn't exist
-LOCK_DIR = os.path.expanduser("~/.gpu_locks")
+# Use /tmp to avoid NFS sharing issues (each machine has its own /tmp)
+LOCK_DIR = "/tmp/gpu_locks"
 os.makedirs(LOCK_DIR, exist_ok=True)
 
 # List of GPU IDs that should never be used (e.g., reserved for other tasks)
@@ -250,13 +251,13 @@ def find_free_gpus(memory_free_threshold_gb=1, power_threshold_w=None, utilizati
                                          If 0, only checks power threshold (if provided) or returns all GPUs.
         power_threshold_w (float, optional): Maximum power usage (in Watts) to consider a GPU as free.
                                            If None, power is not considered.
-        utilization_threshold_percent (float): Maximum GPU utilization (in %) to consider a GPU as free.
-                                              Default is 1% to account for idle fluctuations.
+        utilization_threshold_percent (float, optional): Maximum GPU utilization (in %) to consider a GPU as free.
+                                              If None, utilization is not considered. Default is 1% to account for idle fluctuations.
     
     Returns:
         list: List of GPU info dictionaries for free GPUs.
     """
-    if memory_free_threshold_gb == 0 and power_threshold_w is None and utilization_threshold_percent >= 100:
+    if memory_free_threshold_gb == 0 and power_threshold_w is None and (utilization_threshold_percent is None or utilization_threshold_percent >= 100):
         # Return all non-banned GPUs without checking usage (only if utilization check is disabled)
         num_gpus = get_total_num_gpus()
         
@@ -316,7 +317,7 @@ def find_free_gpus(memory_free_threshold_gb=1, power_threshold_w=None, utilizati
         
         # Check utilization threshold (default 1%)
         utilization_ok = True
-        if utilization_threshold_percent < 100:
+        if utilization_threshold_percent is not None and utilization_threshold_percent < 100:
             utilization_ok = gpu.get("utilization", float('inf')) <= utilization_threshold_percent
         
         # GPU is free if it meets all criteria
