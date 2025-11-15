@@ -97,6 +97,14 @@ with GPUScheduler(
     utilization_threshold_percent=1
 ) as gpu_ids:
     print(f"Using GPUs: {gpu_ids}")
+    
+    # Use the first scheduled GPU as default
+    device = f"cuda:{gpu_ids[0]}"
+    
+    # Or access specific GPUs
+    device1 = f"cuda:{gpu_ids[0]}"
+    device2 = f"cuda:{gpu_ids[1]}"
+    
     # Your code here
 ```
 
