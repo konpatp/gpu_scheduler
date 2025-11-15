@@ -34,10 +34,37 @@ from gpu_scheduler import GPUScheduler
 
 # Acquire a single GPU with default settings
 with GPUScheduler() as gpu_ids:
+    # Option 1: Explicitly use the scheduled GPU (recommended)
     device = f"cuda:{gpu_ids[0]}"
-    # Your training code here
+    model = model.to(device)
+    
+    # Option 2: Use default device (scheduler sets it automatically)
+    device = torch.device("cuda")  # Uses the scheduled GPU
     model = model.to(device)
 ```
+
+## Important: Device Handling
+
+**⚠️ Important Note about `cuda:0` vs Default Device:**
+
+When `GPUScheduler` sets the default device, it uses `torch.cuda.set_device(gpu_ids[0])`. However, **`cuda:0` always refers to GPU index 0** (the first GPU in PyTorch's ordering), not necessarily the scheduled GPU.
+
+**Example:**
+```python
+with GPUScheduler() as gpu_ids:
+    # If scheduler acquired GPU 3:
+    # - torch.cuda.current_device() returns 3
+    # - torch.cuda.set_device(3) was called
+    
+    device1 = torch.device("cuda:0")      # ❌ Still refers to GPU 0, not GPU 3!
+    device2 = torch.device(f"cuda:{gpu_ids[0]}")  # ✅ Correct: uses GPU 3
+    device3 = torch.device("cuda")        # ✅ Uses default (GPU 3, set by scheduler)
+```
+
+**Best Practices:**
+1. **Explicit device string**: Use `f"cuda:{gpu_ids[0]}"` to explicitly target the scheduled GPU
+2. **Default device**: Use `torch.device("cuda")` to use the default device (which the scheduler set)
+3. **Avoid hardcoding**: Never hardcode `cuda:0` - it may not be the scheduled GPU
 
 ## Usage Examples
 
@@ -48,8 +75,15 @@ from gpu_scheduler import GPUScheduler
 
 # Single GPU with memory constraint
 with GPUScheduler(memory_free_threshold_gb=20) as gpu_ids:
-    print(f"Using GPU: {gpu_ids[0]}")
+    # Explicitly use the scheduled GPU (recommended)
+    device = f"cuda:{gpu_ids[0]}"
+    print(f"Using GPU: {gpu_ids[0]} on device: {device}")
+    
+    # Or use default device (scheduler already set it)
+    device = torch.device("cuda")
+    
     # Your code here
+    model = model.to(device)
 ```
 
 ### Multiple GPUs
