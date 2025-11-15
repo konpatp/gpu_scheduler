@@ -137,26 +137,16 @@ The package uses the following default configuration:
 
 ## Git Submodule Integration
 
-When using as a git submodule, add the submodule directory to your Python path:
+When using as a git submodule, imports work directly since the package is at the root level:
 
 ```python
-import sys
-from pathlib import Path
-
-# Add submodule to path
-repo_root = Path(__file__).resolve().parents[0]  # Adjust based on your structure
-gpu_scheduler_path = repo_root / "gpu_scheduler_package"
-if gpu_scheduler_path.exists():
-    sys.path.insert(0, str(gpu_scheduler_path))
-
 from gpu_scheduler import GPUScheduler
+
+with GPUScheduler() as gpu_ids:
+    # Your code here
 ```
 
-Or update your imports to use the submodule path directly:
-
-```python
-from gpu_scheduler_package.gpu_scheduler import GPUScheduler
-```
+No path manipulation is needed - the submodule directory (`./gpu_scheduler/`) is automatically in the Python path when it's at the repository root.
 
 ## License
 
