@@ -2,6 +2,8 @@
 
 A Python package for managing GPU allocation and scheduling in multi-GPU environments. Provides automatic GPU discovery, health checks, and file-based locking to ensure exclusive access to GPUs.
 
+This package can be used either as a standalone library or as a git submodule in your project.
+
 ## Features
 
 - **Automatic GPU Discovery**: Detects available GPUs using nvidia-smi and PyTorch
@@ -13,7 +15,30 @@ A Python package for managing GPU allocation and scheduling in multi-GPU environ
 
 ## Installation
 
-This package is designed to be used as a git submodule. To use it in your project:
+### Method 1: Standalone Installation
+
+Install directly from the repository using pip:
+
+```bash
+# Install from git repository
+pip install git+https://github.com/konpatp/gpu_scheduler.git
+
+# Or install from a local directory
+pip install /path/to/gpu_scheduler
+
+# Or install in editable mode from local directory
+pip install -e /path/to/gpu_scheduler
+```
+
+Alternatively, you can use the `requirements.txt` file:
+
+```bash
+pip install -r requirements.txt
+```
+
+### Method 2: Git Submodule
+
+Use as a git submodule in your project:
 
 1. Add as a git submodule:
 ```bash
@@ -28,8 +53,15 @@ pip install -e lib/gpu_scheduler
 
 ## Dependencies
 
-- `torch` (PyTorch)
-- `filelock`
+**Required dependencies** (installed automatically):
+- `filelock` - For file-based GPU locking
+- `pyyaml` - For loading banned GPU configuration
+
+**Optional dependencies** (install separately if needed):
+- `torch` (PyTorch) - Required if using PyTorch GPU features. Install separately:
+  ```bash
+  pip install torch
+  ```
 
 ## Quick Start
 

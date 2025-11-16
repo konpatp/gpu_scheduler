@@ -9,6 +9,7 @@ setup(
     package_dir={"gpu_scheduler": "."},
     python_requires=">=3.6",
     install_requires=[
+        "filelock",
         "pyyaml",
     ],
     entry_points={
