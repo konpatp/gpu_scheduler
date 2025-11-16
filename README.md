@@ -79,14 +79,20 @@ with GPUScheduler() as gpu_ids:
 ### CLI Usage
 
 ```bash
-# Find 1 free GPU and set CUDA_VISIBLE_DEVICES
+# Find 1 free GPU and wait if needed (default behavior, reports progress every 10 seconds)
 CUDA_VISIBLE_DEVICES=$(gpu-scheduler --num-gpus 1) accelerate launch ...
 
-# Find 2 free GPUs
-CUDA_VISIBLE_DEVICES=$(gpu-scheduler --num-gpus 2) python train.py
+# Exit immediately if GPUs are not available (use --no-wait)
+CUDA_VISIBLE_DEVICES=$(gpu-scheduler --num-gpus 1 --no-wait) python train.py
 
-# Custom thresholds
-CUDA_VISIBLE_DEVICES=$(gpu-scheduler --num-gpus 1 --memory-threshold-gb 40 --power-threshold-w 50) python train.py
+# Find 2 free GPUs with custom thresholds (waits by default)
+CUDA_VISIBLE_DEVICES=$(gpu-scheduler --num-gpus 2 --memory-threshold-gb 40 --power-threshold-w 50) python train.py
+
+# Wait with timeout (max 5 minutes)
+CUDA_VISIBLE_DEVICES=$(gpu-scheduler --num-gpus 1 --max-wait-time 300) python train.py
+
+# Custom poll interval (default is 10 seconds)
+CUDA_VISIBLE_DEVICES=$(gpu-scheduler --num-gpus 1 --poll-interval 5) python train.py
 ```
 
 ## Usage Examples
@@ -136,6 +142,9 @@ gpu-scheduler --help
 - `--memory-threshold-gb`: Minimum free memory in GB (default: 20)
 - `--power-threshold-w`: Maximum power usage in Watts (default: 80)
 - `--utilization-threshold-percent`: Maximum GPU utilization % (default: None, not checked)
+- `--no-wait`: Exit immediately if GPUs are not available (default: wait for GPUs)
+- `--poll-interval`: Interval in seconds between checks when waiting (default: 10 seconds)
+- `--max-wait-time`: Maximum time in seconds to wait for GPUs (default: None, wait indefinitely)
 
 ## Important: Device Handling
 
