@@ -8,6 +8,9 @@ setup(
     packages=["gpu_scheduler"],
     package_dir={"gpu_scheduler": "."},
     python_requires=">=3.6",
+    install_requires=[
+        "pyyaml",
+    ],
     entry_points={
         "console_scripts": [
             "gpu-scheduler=gpu_scheduler.cli:main",

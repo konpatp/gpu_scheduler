@@ -3,6 +3,7 @@
 import os
 import logging
 import torch
+import yaml
 from filelock import FileLock, Timeout
 
 from .utils import get_nvidia_smi_data, match_pytorch_to_nvidia
@@ -14,13 +15,40 @@ logger = logging.getLogger("gpu_scheduler")
 LOCK_DIR = "/tmp/gpu_locks"
 os.makedirs(LOCK_DIR, exist_ok=True)
 
-# List of GPU IDs that should never be used (e.g., reserved for other tasks)
-# Can be overridden via environment variable or configuration
-BANNED_GPUS = []
 
-# List of GPU names that should never be used (e.g., specific models to avoid)
-# Can be overridden via environment variable or configuration
-BANNED_GPU_NAMES = ["Quadro RTX 6000"]
+def _load_banned_gpus():
+    """
+    Load banned GPUs from YAML file specified by BANNED_GPUS_YAML environment variable.
+    Defaults to ~/banned_gpus.yaml if not set.
+    
+    Returns:
+        tuple: (banned_gpu_ids, banned_gpu_names) - lists of banned GPU IDs and names
+    """
+    banned_gpus = []
+    banned_gpu_names = []
+    
+    # Get path from environment variable or use default
+    yaml_path = os.environ.get("BANNED_GPUS_YAML", os.path.expanduser("~/banned_gpus.yaml"))
+    
+    if not os.path.exists(yaml_path):
+        logger.debug(f"Banned GPUs YAML file not found at {yaml_path}, using empty lists")
+        return banned_gpus, banned_gpu_names
+    
+    try:
+        with open(yaml_path, "r") as f:
+            config = yaml.safe_load(f)
+            if config:
+                banned_gpus = config.get("banned_gpus", [])
+                banned_gpu_names = config.get("banned_gpu_names", [])
+                logger.info(f"Loaded {len(banned_gpus)} banned GPU IDs and {len(banned_gpu_names)} banned GPU names from {yaml_path}")
+    except Exception as e:
+        logger.warning(f"Error loading banned GPUs from {yaml_path}: {e}. Using empty lists.")
+    
+    return banned_gpus, banned_gpu_names
+
+
+# Load banned GPUs from YAML file
+BANNED_GPUS, BANNED_GPU_NAMES = _load_banned_gpus()
 
 
 def get_gpu_memory_usage():
